@@ -146,3 +146,5 @@ Ideas and fixes are welcome.
 MIT. Free to use, change and share. See [LICENSE](LICENSE).
 
 Made by [Hanna](https://github.com/dBlueSk), built with the help of [Claude](https://claude.ai).
+
+*This is a community project, not an official Anthropic product.*
