@@ -7,6 +7,8 @@ remembers. It only reads files; it never changes them. Standard library only.
 
 Commands
   search  QUERY [QUERY ...]   find matching messages (several phrasings help)
+  search  --stdin             same, but read one phrasing per line from stdin
+                              (safest way to pass text that contains quotes or $)
   show    REF                 show the turns around a hit (REF comes from search)
   recent                      list recent sessions, newest first
 
@@ -16,6 +18,11 @@ Common options
   --until DATE     only sessions on or before DATE (YYYY-MM-DD)
   --include-current  also search the newest session (skipped by default,
                      because while Claude Code is running it is this one)
+
+Safety
+  Read-only: never writes, deletes, runs programs or uses the network.
+  Only reads session files inside ~/.claude/projects/.
+  Masks things that look like secrets (API keys, tokens, passwords) in output.
 """
 
 import argparse
@@ -36,6 +43,30 @@ when where which who why will with you your about just like where's we've i'm it
 TAG_BLOCK = re.compile(r"<(system-reminder|local-command-stdout|local-command-stderr|command-message|user-prompt-submit-hook)>.*?</\1>", re.S)
 ANY_TAG = re.compile(r"</?[a-zA-Z][\w-]*(\s[^>]*)?>")
 SELF_MARKERS = ("chat-navigator", "search_sessions.py")
+SESSION_ID = re.compile(r"^[A-Za-z0-9_-]+$")
+
+# Things that look like secrets are masked before anything is printed,
+# so an old session's pasted key never re-enters a conversation.
+SECRET_PATTERNS = [
+    re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----.*?-----END [A-Z ]*PRIVATE KEY-----", re.S),
+    re.compile(r"\b(sk|pk|rk)-[A-Za-z0-9_-]{16,}"),            # OpenAI/Anthropic/Stripe-style keys
+    re.compile(r"\bgh[pousr]_[A-Za-z0-9]{20,}"),              # GitHub tokens
+    re.compile(r"\bgithub_pat_[A-Za-z0-9_]{20,}"),
+    re.compile(r"\bxox[abprs]-[A-Za-z0-9-]{10,}"),            # Slack tokens
+    re.compile(r"\bAKIA[0-9A-Z]{16}\b"),                      # AWS access key id
+    re.compile(r"\bAIza[0-9A-Za-z_-]{30,}"),                  # Google API key
+    re.compile(r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}"),  # JWT
+    re.compile(r"(?i)\b(password|passwd|secret|api[_-]?key|token)(\s*[:=]\s*)(['\"]?)[^\s'\"]{6,}\3"),
+]
+
+
+def redact(text):
+    for pat in SECRET_PATTERNS:
+        if pat.groups >= 2:
+            text = pat.sub(lambda m: m.group(1) + m.group(2) + "[hidden]", text)
+        else:
+            text = pat.sub("[hidden]", text)
+    return text
 
 
 # ---------- reading session files ----------
@@ -71,7 +102,7 @@ def message_text(entry):
         parts = [b.get("text", "") for b in content if isinstance(b, dict) and b.get("type") == "text"]
     else:
         return ""
-    text = clean("\n".join(parts))
+    text = redact(clean("\n".join(parts)))
     if any(m in text for m in SELF_MARKERS):
         return ""  # don't find our own searches
     return text
@@ -87,7 +118,7 @@ def load_session(path):
             except ValueError:
                 continue
             if entry.get("type") == "summary" and entry.get("summary") and not title:
-                title = entry["summary"]
+                title = redact(str(entry["summary"]))
             cwd = cwd or entry.get("cwd")
             text = message_text(entry)
             if not text:
@@ -157,7 +188,11 @@ def snippet(text, word, width=420):
 # ---------- commands ----------
 
 def cmd_search(args):
-    queries = args.queries
+    queries = list(args.queries or [])
+    if args.stdin:
+        queries += [line.strip() for line in sys.stdin if line.strip()]
+    if not queries:
+        sys.exit("Give at least one search phrase (as arguments, or one per line with --stdin).")
     hits = []
     for path in session_files(args.include_current):
         info, msgs = load_session(path)
@@ -190,8 +225,14 @@ def cmd_search(args):
 
 
 def find_session(sid):
-    matches = glob.glob(os.path.join(PROJECTS, "*", sid + "*.jsonl"))
-    return matches[0] if matches else None
+    # Only plain session ids, and only files that really live under ~/.claude/projects/.
+    if not SESSION_ID.match(sid):
+        return None
+    root = os.path.realpath(PROJECTS) + os.sep
+    for path in glob.glob(os.path.join(PROJECTS, "*", sid + "*.jsonl")):
+        if os.path.realpath(path).startswith(root):
+            return path
+    return None
 
 
 def cmd_show(args):
@@ -200,7 +241,10 @@ def cmd_show(args):
     if not path:
         sys.exit(f"Session {sid} not found.")
     info, msgs = load_session(path)
-    idx = int(idx or 0)
+    try:
+        idx = int(idx or 0)
+    except ValueError:
+        sys.exit("REF should look like SESSION:NUMBER, as printed by search.")
     lo, hi = max(0, idx - args.before), min(len(msgs), idx + args.after + 1)
     print(f"TITLE: {info['title']}\nDATE:  {info['date']}    PROJECT: {info['project']}\nFILE:  {info['path']}\n")
     for j in range(lo, hi):
@@ -235,7 +279,8 @@ def main():
         sp.add_argument("--until")
         sp.add_argument("--include-current", action="store_true")
 
-    s = sub.add_parser("search"); s.add_argument("queries", nargs="+"); common(s)
+    s = sub.add_parser("search"); s.add_argument("queries", nargs="*"); common(s)
+    s.add_argument("--stdin", action="store_true", help="read phrasings from stdin, one per line")
     s.add_argument("--limit", type=int, default=6)
     s.add_argument("--min-score", type=float, default=0.5)
     s.set_defaults(func=cmd_search)
