@@ -71,7 +71,7 @@ That's it. Start a new Claude Code session to use it.
 1. In **Settings**, turn on:
    - **Search and reference chats**: lets Claude look through your past conversations.
    - **Memory**: lets Claude keep your collection from one chat to the next. (Without it, searching still works; only saving doesn't.)
-2. Download **`chat-navigator.skill`** from this page.
+2. Download **[chat-navigator.skill](https://github.com/dBlueSk/claude-chat-navigator/releases/latest/download/chat-navigator.skill)** (this link always gives you the latest version; older versions are under [Releases](https://github.com/dBlueSk/claude-chat-navigator/releases)).
 3. Open **Settings → Capabilities → Skills**, click **Add** (or **Upload skill**) and choose the file.
 4. Make sure the skill is switched on.
 
