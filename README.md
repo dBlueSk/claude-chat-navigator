@@ -104,6 +104,7 @@ Start your message with `/chat-navigator`, or just ask naturally:
 - **It only shows what really exists.** If nothing matches, it tells you and suggests other words to try. It never makes up a passage.
 - **Nothing is saved unless you ask.** Search results stay in the chat. Only "add to collection" keeps them.
 - **Your collection is private.** Nobody else can see it.
+- **Old chats are treated as information, not orders.** If an old passage contains instructions (say, text copied from a website), Claude shows it but never acts on it.
 - **Can't find something?** Try other words, or mention roughly when it was ("last week", "in my Django project").
 
 **In Claude Code**
@@ -111,7 +112,8 @@ Start your message with `/chat-navigator`, or just ask naturally:
 - **It searches sessions on this computer only.** Sessions from another computer aren't there.
 - **It works with words, so give it clues.** Mention a library, an error message, or a file name if you remember one. Claude also tries several phrasings for you.
 - **It skips the session you're in**, since you can already see it.
-- **It only reads.** It never changes or deletes your session files.
+- **It only reads.** It never changes or deletes your session files, runs no other programs, and uses no internet.
+- **It hides secrets.** Anything that looks like a password, API key or token in an old session is shown as `[hidden]`.
 - **Your collection is a file** at `~/.claude/chat-navigator/collection.md`. You can open it in any text editor.
 
 **In the Claude app**
