@@ -1,16 +1,16 @@
 # Chat Navigator
 
-**Works in both the Claude app (chat) and Claude Code.**
+**Works in both Claude Code and the Claude app (chat).**
 
-A skill for Claude that searches **all your past Claude chats at once**, from any new chat, and saves the best parts for later.
+A skill for Claude that searches **all your past Claude sessions and chats at once**, from any new one, and saves the best parts for later.
 
-You know the feeling: "Claude explained this really well once… but which chat was it?" Chat Navigator finds it for you.
+You know the feeling: "We fixed this exact bug last month… but which session was it?" Chat Navigator finds it for you.
 
-**No need to remember where it was.** Open a new chat, ask for what you remember, and it looks through your whole history for you. Install it once, and it works in every chat after that.
+**No need to remember where it was.** Start a new session, ask for what you remember, and it looks through your whole history for you. Install it once, and it works every time after that.
 
-![Example: Chat Navigator finds an old chat about the "white bear" thought experiment](demo.png)
+![Example: in Claude Code, Chat Navigator finds the session where a Django login bug was fixed](demo-code.png)
 
-*An illustration of a search result. In Claude, the options under a result appear as text, and you pick one by typing it, e.g. "add to collection".*
+*In Claude Code: it finds the old session, the project it was in, and the fix.*
 
 ---
 
@@ -20,46 +20,35 @@ The skill notices where you are and adjusts by itself. You install the same skil
 
 | Where you use it | What it searches | Where your collection is saved |
 |---|---|---|
-| **Claude app** (web, desktop, mobile) | Your past chats in the app | Your Claude memory |
 | **Claude Code** | Your past Claude Code sessions on this computer | A file on your computer |
+| **Claude app** (web, desktop, mobile) | Your past chats in the app | Your Claude memory |
 
-The two don't mix: the app can't see your Claude Code sessions, and Claude Code can't see your app chats.
+The two don't mix: Claude Code can't see your app chats, and the app can't see your Claude Code sessions.
 
-![Example: in Claude Code, Chat Navigator finds the session where a Django login bug was fixed](demo-code.png)
+![Example: in the Claude app, Chat Navigator finds an old chat about the "white bear" thought experiment](demo.png)
 
-*The same skill in Claude Code: it finds the old session, the project it was in, and the fix.*
+*The same skill in the Claude app: it finds an old chat by meaning. (An illustration: in Claude, the options under a result appear as text, and you pick one by typing it, e.g. "add to collection".)*
 
 ---
 
 ## What it does
 
-**1. Searches across all your chats.**
-Not just the chat you're in: it looks through all your past conversations. Describe what you remember, and it finds the chat.
+**1. Searches across all your sessions and chats.**
+Not just the one you're in: it looks through all your past conversations. Describe what you remember, and it finds it.
 
-> *"Find where we talked about why you can't stop thinking about something"*
->
 > *"Which session did we fix the login redirect bug in?"*
+>
+> *"Find where we talked about why you can't stop thinking about something"*
 
 **2. Shows you the part you were looking for.**
-You get the passage itself, plus the chat name and date so you can find the original.
+You get the passage itself, plus the title and date so you can find the original.
 
 **3. Saves what you want to keep.**
-Say "add to collection" and the passage goes into your personal review collection. Later, in any chat, say "show collection" to see everything you saved.
+Say "add to collection" and the passage goes into your personal review collection. Later, say "show collection" to see everything you saved.
 
 ---
 
 ## How to install
-
-### In the Claude app
-
-1. In **Settings**, turn on:
-   - **Search and reference chats**: lets Claude look through your past conversations.
-   - **Memory**: lets Claude keep your collection from one chat to the next. (Without it, searching still works; only saving doesn't.)
-2. Download **`chat-navigator.skill`** from this page.
-3. Open **Settings → Capabilities → Skills**, click **Add** (or **Upload skill**) and choose the file.
-4. Make sure the skill is switched on.
-
-That's it. Start a new chat to use it.
 
 ### In Claude Code
 
@@ -77,6 +66,17 @@ No git? Click **Code → Download ZIP** on this page and unzip it. Rename the fo
 
 That's it. Start a new Claude Code session to use it.
 
+### In the Claude app
+
+1. In **Settings**, turn on:
+   - **Search and reference chats**: lets Claude look through your past conversations.
+   - **Memory**: lets Claude keep your collection from one chat to the next. (Without it, searching still works; only saving doesn't.)
+2. Download **`chat-navigator.skill`** from this page.
+3. Open **Settings → Capabilities → Skills**, click **Add** (or **Upload skill**) and choose the file.
+4. Make sure the skill is switched on.
+
+That's it. Start a new chat to use it.
+
 ---
 
 ## How to use it
@@ -85,13 +85,13 @@ Start your message with `/chat-navigator`, or just ask naturally:
 
 | You say | What happens |
 |---|---|
-| `/chat-navigator white bear` | Searches your chats for that topic |
+| `/chat-navigator login redirect bug` | Searches for that topic |
 | "Find where we talked about…" | Same thing, in plain words |
 | "Add to collection" | Saves the result you're looking at |
 | "Add note: …" | Attaches your own note to a saved passage |
-| "Find related" | Looks for other chats about the same idea |
+| "Find related" | Looks for other sessions or chats about the same idea |
 | "Show collection" | Lists everything you saved, grouped by tag |
-| "Show my neuroscience entries" | Shows only one tag |
+| "Show my django entries" | Shows only one tag |
 | "Remove [title]" | Deletes a saved passage |
 | "Export my collection" | Turns your collection into a document you can keep |
 
@@ -106,10 +106,6 @@ Start your message with `/chat-navigator`, or just ask naturally:
 - **Your collection is private.** Nobody else can see it.
 - **Can't find something?** Try other words, or mention roughly when it was ("last week", "in my Django project").
 
-**In the Claude app**
-
-- **Chats inside Projects are searched separately.** In a normal chat, it searches all your chats that aren't in a Project. Inside a Project, it searches only that Project's chats. So if you're looking for something from a Project, ask from inside that Project.
-
 **In Claude Code**
 
 - **It searches sessions on this computer only.** Sessions from another computer aren't there.
@@ -117,6 +113,10 @@ Start your message with `/chat-navigator`, or just ask naturally:
 - **It skips the session you're in**, since you can already see it.
 - **It only reads.** It never changes or deletes your session files.
 - **Your collection is a file** at `~/.claude/chat-navigator/collection.md`. You can open it in any text editor.
+
+**In the Claude app**
+
+- **Chats inside Projects are searched separately.** In a normal chat, it searches all your chats that aren't in a Project. Inside a Project, it searches only that Project's chats. So if you're looking for something from a Project, ask from inside that Project.
 
 ---
 
